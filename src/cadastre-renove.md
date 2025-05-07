@@ -23,7 +23,7 @@ Cette page présente le cadastre rénové de Lausanne (1889).
 ## Carte
 
 ```js
-const geojson = FileAttachment("./data/lausanne-1888-cadastre-renove-points-20250409.geojson").json()
+const geojson = FileAttachment("./data/espaces_verts_macro.geojson").json()
 ```
 <!-- Create the map container -->
 <div id="map-container" style="height: 500px; margin: 1em 0 2em 0;"></div>
@@ -32,6 +32,7 @@ const geojson = FileAttachment("./data/lausanne-1888-cadastre-renove-points-2025
 // Create Map and Layer - Runs Once
 function createMapAndLayer(mapContainer, geojsonData) {
     const map = L.map(mapContainer).setView([46.55, 6.65], 11);
+
 
     const osmLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -51,17 +52,30 @@ function createMapAndLayer(mapContainer, geojsonData) {
     // Store map from geom_id -> leaflet layer instance
     const featureLayersMap = new Map();
 
+        // Define getColor outside the object
+    function getColor(cat) {
+        return {
+            foret: "#228B22",
+            bosquet: "#006400",
+            pre: "#7CFC00",
+            champ: "#DEB887",
+            vigne: "#8FBC8F",
+            jardin: "#FFD700",
+        }[cat] || "#000000";
+    }
+
     const geoJsonLayer = L.geoJSON(geojsonData, {
-        pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, {
-                radius: 4,
-                fillColor: "#CCC",
-                color: "#666",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.5
-            });
+        style: function (feature) {
+            const cat = feature.properties.macro_ev;
+            return {
+                color: "#333",
+                fillColor: getColor(cat),
+                fillOpacity: 0.6,
+                weight: 1
+            };
         },
+        
+
         onEachFeature: function (feature, layer) {
             // Store a reference to the layer using its merge_id
             // As a single merge_id can be used for multiple features, we use a Set
