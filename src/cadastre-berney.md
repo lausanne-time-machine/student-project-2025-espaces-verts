@@ -17,8 +17,8 @@ if (L === undefined) console.error("L is undefined");
 import "./plugins/leaflet-heat.js";
 ```
 
-# Cadastre Rénové
-Cette page présente le cadastre rénové de Lausanne (1889).
+# Cadastre Berney
+Cette page présente le cadastre Berney de Lausanne (1831).
 
 ## Carte
 
