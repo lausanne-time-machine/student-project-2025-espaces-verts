@@ -97,33 +97,6 @@ function createMapAndLayer(mapContainer, geojsonData) {
             };
         },
         
-
-        onEachFeature: function (feature, layer) {
-            // Store a reference to the layer using its merge_id
-            // As a single merge_id can be used for multiple features, we use a Set
-            // to store all layers associated with that merge_id
-            if (feature.properties && feature.properties.merge_id) {
-                const merge_id = feature.properties.merge_id;
-
-                // Check if the merge_id already exists in the map
-                if (!featureLayersMap.has(merge_id)) {
-                    featureLayersMap.set(merge_id, new Set());
-                }
-                // Add the layer to the Set associated with the merge_id
-                featureLayersMap.get(merge_id).add(layer);
-
-                // Bind a popup to the layer with the details of the corresponding entries
-                const entries = mergeIDMap.get(merge_id);
-                if (entries) {
-                    const popupContent = entries.map(entry => {
-                        return columnNames.map(column => {
-                            return `<strong>${column}:</strong> ${entry[column]}<br>`;
-                        }).join("") + "<hr>";
-                    }).join("");
-                    layer.bindPopup(popupContent);
-                }
-            }
-        }
     }).addTo(map);
     
     layerControl.addOverlay(geoJsonLayer, "Points");
@@ -179,8 +152,6 @@ function updateMapFilter(geoJsonLayer, featureLayersMap, filteredMergeIDsSet) {
     });
 }
 
-// Call the update function. This cell depends on filteredMergeIDsSet and mapElements.
-const mapUpdateStatus = updateMapFilter(mapElements.geoJsonLayer, mapElements.featureLayersMap, filteredMergeIDsSet)
 ```
 
 ```js
@@ -204,46 +175,4 @@ const heatmapLayer = L.heatLayer(heatmapData, {
 
 // Add the heatmap layer to the layer control
 mapElements.layerControl.addOverlay(heatmapLayer, "Heatmap");
-```
-
-## Registre
-
-```js
-const registre = FileAttachment("./data/lausanne-1888-cadastre-renove-registre-20250410.csv").csv()
-```
-
-```js
-// Create a list of column names
-const columnNames = Object.keys(registre[0]);
-```
-
-```js
-// Create a Map of the merge_id to corresponding entries in the registre
-// This is used to populate the popups with the relevant data for each point
-const mergeIDMap = new Map();
-registre.forEach(entry => {
-    const merge_id = entry.merge_id;
-    if (!mergeIDMap.has(merge_id)) {
-        mergeIDMap.set(merge_id, []);
-    }
-    mergeIDMap.get(merge_id).push(entry);
-});
-```
-
-_Utilisez le champ de recherche pour filtrer les entrées du registre. Les points affichés sur la carte sont mis à jour en fonction du résultat de la recherche._
-
-```js
-const searchResults = view(Inputs.search(registre))
-```
-
-```js
-Inputs.table(searchResults)
-```
-
-```js
-const filteredMergeIDs = searchResults.map(r => r.merge_id)
-```
-
-```js
-const filteredMergeIDsSet = new Set(filteredMergeIDs);
 ```
