@@ -25,6 +25,19 @@ Cette page présente le cadastre rénové de Lausanne (1889).
 ```js
 const geojson = FileAttachment("./data/espaces_verts_macro.geojson").json()
 ```
+
+<!-- Macro-class filter UI -->
+<div id="macro-filter" style="margin-bottom: 1em;">
+    <strong>Filtrer par catégorie :</strong><br>
+    <label><input type="checkbox" value="foret" checked> foret</label>
+    <label><input type="checkbox" value="bosquet" checked> bosquet</label>
+    <label><input type="checkbox" value="pre" checked> pré</label>
+    <label><input type="checkbox" value="champ" checked> champ</label>
+    <label><input type="checkbox" value="vigne" checked> vigne</label>
+    <label><input type="checkbox" value="jardin" checked> jardin</label>
+</div>
+
+
 <!-- Create the map container -->
 <div id="map-container" style="height: 500px; margin: 1em 0 2em 0;"></div>
 
@@ -86,6 +99,8 @@ function createMapAndLayer(mapContainer, geojsonData) {
         }[cat] || "#000000";
     }
 
+    const categoryLayersMap = new Map();
+
     const geoJsonLayer = L.geoJSON(geojsonData, {
         style: function (feature) {
             const cat = feature.properties.macro_ev;
@@ -96,6 +111,13 @@ function createMapAndLayer(mapContainer, geojsonData) {
                 weight: 1
             };
         },
+        onEachFeature: function (feature, layer) {
+        const cat = feature.properties.macro_ev;
+        if (!categoryLayersMap.has(cat)) {
+            categoryLayersMap.set(cat, []);
+        }
+        categoryLayersMap.get(cat).push(layer);
+    }   
         
     }).addTo(map);
     
@@ -120,11 +142,34 @@ function createMapAndLayer(mapContainer, geojsonData) {
 
 
     // Return the the map instance, the layer group, and the mapping
-    return { map, layerControl, geoJsonLayer, featureLayersMap };
+    return { map, layerControl, geoJsonLayer, categoryLayersMap };
 }
 
 // Call the creation function and store the results
 const mapElements = createMapAndLayer("map-container", geojson);
+
+// Function to apply macro-class filter
+function applyMacroFilter(geoJsonLayer, categoryLayersMap) {
+    const checked = Array.from(document.querySelectorAll("#macro-filter input:checked"))
+        .map(input => input.value);
+
+    // Clear all layers first
+    geoJsonLayer.clearLayers();
+
+    // Re-add only layers matching selected categories
+    checked.forEach(cat => {
+        const layers = categoryLayersMap.get(cat) || [];
+        layers.forEach(layer => geoJsonLayer.addLayer(layer));
+    });
+}
+
+// Add event listeners to checkboxes
+document.querySelectorAll("#macro-filter input").forEach(input => {
+    input.addEventListener("change", () => {
+        applyMacroFilter(mapElements.geoJsonLayer, mapElements.categoryLayersMap);
+    });
+});
+
 ```
 
 ```js
