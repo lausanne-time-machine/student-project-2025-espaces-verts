@@ -28,6 +28,28 @@ const geojson = FileAttachment("./data/espaces_verts_macro.geojson").json()
 <!-- Create the map container -->
 <div id="map-container" style="height: 500px; margin: 1em 0 2em 0;"></div>
 
+<style>
+    .legend {
+        background: white;
+        padding: 6px 8px;
+        font: 14px Arial, sans-serif;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        line-height: 24px;
+        color: #333;
+    }
+
+    .legend i {
+        width: 18px;
+        height: 18px;
+        float: left;
+        margin-right: 8px;
+        opacity: 0.8;
+        display: inline-block;
+    }
+</style>
+
+
 ```js
 // Create Map and Layer - Runs Once
 function createMapAndLayer(mapContainer, geojsonData) {
@@ -105,6 +127,24 @@ function createMapAndLayer(mapContainer, geojsonData) {
     }).addTo(map);
     
     layerControl.addOverlay(geoJsonLayer, "Points");
+
+    // Create and add a legend control
+    const legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function (map) {
+        const div = L.DomUtil.create("div", "info legend");
+
+        const categories = ["foret", "bosquet", "pre", "champ", "vigne", "jardin"];
+        const labels = categories.map(cat => {
+            return `<i style="background:${getColor(cat)}"></i> ${cat}`;
+        });
+
+        div.innerHTML = "<strong>Catégories</strong><br>" + labels.join("<br>");
+        return div;
+    };
+
+    legend.addTo(map);
+
 
     // Return the the map instance, the layer group, and the mapping
     return { map, layerControl, geoJsonLayer, featureLayersMap };
