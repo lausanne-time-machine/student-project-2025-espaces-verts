@@ -14,6 +14,7 @@ export default {
         {name: "Report", path: "/example-report"},
         {name: "Weather", path: "/weather"},
         {name: "Cadastre Rénové", path: "/cadastre-renove"},
+        {name: "Cadastre Berney", path: "/cadastre-berney"},
       ]
     }
   ],
