@@ -15,6 +15,7 @@ export default {
         {name: "Weather", path: "/weather"},
         {name: "Cadastre Rénové", path: "/cadastre-renove"},
         {name: "Cadastre Berney", path: "/cadastre-berney"},
+        {name: "Carte 2024", path: "/carte_2024"},
       ]
     }
   ],
