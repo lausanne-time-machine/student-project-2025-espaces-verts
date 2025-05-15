@@ -13,8 +13,9 @@ export default {
         {name: "Dashboard", path: "/example-dashboard"},
         {name: "Report", path: "/example-report"},
         {name: "Weather", path: "/weather"},
-        {name: "Cadastre Rénové", path: "/cadastre-renove"},
         {name: "Cadastre Berney", path: "/cadastre-berney"},
+        {name: "Cadastre Rénové", path: "/cadastre-renove"},
+        {name: "Comparaison Berney-Rénové", path: "/evolution_macro_ev"},
         {name: "Carte 2024", path: "/carte_2024"},
       ]
     }
