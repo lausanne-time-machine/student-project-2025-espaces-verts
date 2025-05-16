@@ -17,6 +17,7 @@ export default {
         {name: "Cadastre Rénové", path: "/cadastre-renove"},
         {name: "Comparaison Berney-Rénové", path: "/evolution_macro_ev"},
         {name: "Carte 2024", path: "/carte_2024"},
+        {name: "Slider test", path: "/slider_test"},
       ]
     }
   ],
