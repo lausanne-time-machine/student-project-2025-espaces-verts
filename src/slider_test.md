@@ -25,7 +25,7 @@ mix
 
 ```js
 // Load both GeoJSON datasets
-geojson1831 = FileAttachment("./data/Berney_espaces_verts_macro.geojson").json()
+geojson1831 = FileAttachment("./data/**Berney_espaces_verts_macro**.geojson").json()
 geojson2024 = FileAttachment("./data/2024_espaces_verts_macro.geojson").json()
 ```
 
