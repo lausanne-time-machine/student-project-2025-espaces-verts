@@ -14,12 +14,12 @@ import L from "npm:leaflet";
   <!-- Leaflet will draw the map here -->
 
   <div class="legend">
-    <i style="background:#228B22"></i> foret<br>
-    <i style="background:#006400"></i> bosquet<br>
-    <i style="background:#7CFC00"></i> pré<br>
-    <i style="background:#DEB887"></i> champ<br>
-    <i style="background:#8FBC8F"></i> vigne<br>
-    <i style="background:#FFD700"></i> jardin
+    <i style="background: #B2CDA1;"></i> Forêt<br>
+    <i style="background: #A8D5BA;"></i> Bosquet<br>
+    <i style="background: #D5E8D4;"></i> Pré<br>
+    <i style="background: #F5E1A4;"></i> Champ<br>
+    <i style="background: #D8B4E2;"></i> Vigne<br>
+    <i style="background: #F7C6C7;"></i> Jardin
   </div>
 </div>
 
@@ -128,16 +128,16 @@ const heatmapData1721 = geojson1721.features
 
 ```js
 function getColor(cat) {
-  return {
-    foret: "#228B22",
-    bosquet: "#006400",
-    pre: "#7CFC00",
-    champ: "#DEB887",
-    vigne: "#8FBC8F",
-    jardin: "#FFD700",
-  }[cat] || "#000000";
+  const palette = {
+    bosquet: "#A8D5BA", // pastel green
+    champ:   "#F5E1A4", // pastel golden
+    foret:   "#B2CDA1", // pastel forest
+    jardin:  "#F7C6C7", // pastel rose
+    pre:     "#D5E8D4", // pastel meadow
+    vigne:   "#D8B4E2"  // pastel lavender
+  };
+  return palette[cat] || "#000000";
 }
-
 
 
 const map = L.map("map-container").setView([46.55, 6.65], 11);
@@ -505,116 +505,171 @@ map.getPane("pane2024").style.opacity = 0;
 
 
 
-
-
-
-
-
-
 <!-- SURFACE ANALYSIS -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <title>Évolution des surfaces par classe</title>
-  <!-- 1️⃣ Load Chart.js from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js v4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 1em;
-      background: #f9f9f9;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      margin: 1em;
+      background: #fafafa;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      font-weight: 400;
     }
     #chart-container {
-      max-width: 700px;
-      margin: auto;
+      max-width: 1000px;
+      margin: 2em auto;
       background: #fff;
-      padding: 0.5em;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      border-radius: 4px;
+      padding: 1em;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
   </style>
 </head>
 <body>
-  <h2>Évolution des surfaces par classe</h2>
   <div id="chart-container">
-    <!-- 2️⃣ Canvas for Chart.js -->
     <canvas id="areaChart"></canvas>
   </div>
 
   <script>
-  // 3️⃣ Your CSV data inline; you could also fetch it
-  const dataRaw = `year,class,total_area_m2
-1800,bosquet,58160.307797483765
-1800,champ,2469105.0297332285
-1800,foret,375599.7681377862
-1800,jardin,479224.51431752933
-1800,pre,4016861.91537962
-1800,vigne,2052771.6831927958
-1830,bosquet,4488.835962014241
-1830,champ,1380955.974013836
-1830,foret,555212.9713601727
-1830,jardin,675700.8423114982
-1830,pre,4122339.7980536777
-1830,vigne,1533033.0384950945
-2024,foret,476654.2435590087
-2024,jardin,4240887.377227397
-2024,pre,96200.33831764334
-2024,vigne,1644.423232589514`;
+  // ——— 1) Inline CSV (ha) — could be fetched instead
+  const csv = `year,class,total_area_ha
+1721,bosquet,6.089864295432325
+1721,champ,265.0647711593677
+1721,foret,8.663288777553142
+1721,jardin,20.8825658078397
+1721,pre,254.22561459931734
+1721,vigne,290.30825110299236
+1831,bosquet,5.816030779748377
+1831,champ,246.91050297332285
+1831,foret,37.55997681377862
+1831,jardin,47.92245143175293
+1831,pre,401.68619153796203
+1831,vigne,205.27716831927958
+1888,bosquet,0.44888359620142404
+1888,champ,138.09559740138357
+1888,foret,55.521297136017274
+1888,jardin,67.57008423114982
+1888,pre,412.23397980536777
+1888,vigne,153.30330384950946
+2024,foret,47.66542435590087
+2024,jardin,424.0887377227396
+2024,pre,9.620033831764335
+2024,vigne,0.1644423232589514
+`;
 
-  // 4️⃣ Parse CSV into arrays
+  // ——— 2) Simple CSV parser
   function parseCSV(text) {
-    const [header, ...lines] = text.trim().split("\n");
-    const cols = header.split(",");
+    const [hdr, ...lines] = text.trim().split("\n");
+    const cols = hdr.split(",");
     return lines.map(line => {
       const vals = line.split(",");
-      return cols.reduce((obj, key, i) => {
-        obj[key] = isNaN(vals[i]) ? vals[i] : +vals[i];
-        return obj;
+      return cols.reduce((o,k,i) => {
+        o[k] = isNaN(vals[i]) ? vals[i] : +vals[i];
+        return o;
       }, {});
     });
   }
-  const data = parseCSV(dataRaw);
 
-  // 5️⃣ Group by class and year
-  const classes = [...new Set(data.map(d => d.class))];
-  const years   = [1800,1830,2024];
-  const datasets = years.map((year, idx) => ({
-    label: year.toString(),
-    backgroundColor: ["#888","#555","#333"][idx],
-    data: classes.map(c => {
-      const rec = data.find(d => d.year === year && d.class === c);
-      return rec ? rec.total_area_m2 : 0;
-    })
+  const data = parseCSV(csv);
+  const years  = Array.from(new Set(data.map(d => d.year))).sort((a,b)=>a-b);
+  const classes = Array.from(new Set(data.map(d => d.class)));
+
+  // ——— 3) Build lookup and totals
+  const lookup = {};
+  years.forEach(y => classes.forEach(c => { lookup[`${y}|${c}`] = 0; }));
+  data.forEach(d => { lookup[`${d.year}|${d.class}`] = d.total_area_ha; });
+
+  const totals = years.map(y =>
+    classes.reduce((sum,c) => sum + lookup[`${y}|${c}`], 0)
+  );
+
+  // ——— 4) Pastel color palette
+  const colors = [
+    "#A8D5BA", // bosquet – pastel green
+    "#F5E1A4", // champ  – pastel golden
+    "#B2CDA1", // foret  – pastel forest
+    "#F7C6C7", // jardin – pastel rose
+    "#D5E8D4", // pre    – pastel meadow
+    "#D8B4E2"  // vigne  – pastel lavender
+  ];
+
+  // ——— 5) Prepare Chart.js datasets
+  const barDatasets = classes.map((c,i) => ({
+    type: 'bar',
+    label: c.charAt(0).toUpperCase() + c.slice(1),
+    data: years.map(y => lookup[`${y}|${c}`]),
+    backgroundColor: colors[i],
+    stack: 'stack1'
   }));
 
-  // 6️⃣ Create the bar chart
+  const lineDataset = {
+    type: 'line',
+    label: 'Total (ha)',
+    data: totals,
+    borderColor: "#666666",
+    borderWidth: 2,
+    tension: 0.3,
+    fill: false,
+    yAxisID: 'y1',
+    pointBackgroundColor: "#666666"
+  };
+
+  // ——— 6) Chart config
   const ctx = document.getElementById("areaChart").getContext("2d");
   new Chart(ctx, {
-    type: 'bar',
     data: {
-      labels: classes,
-      datasets: datasets
+      labels: years.map(String),
+      datasets: [...barDatasets, lineDataset]
     },
     options: {
       responsive: true,
-      scales: {
-        x: {
-          title: { display: true, text: 'Classe' }
-        },
-        y: {
-          title: { display: true, text: 'Surface (m²)' },
-          beginAtZero: true
-        }
+      interaction: {
+        mode: 'index',
+        intersect: false
       },
       plugins: {
         legend: {
-          position: 'top'
+          position: 'top',
+          labels: { boxWidth: 12, padding: 16 }
         },
         tooltip: {
           callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} m²`
+            label: ctx => {
+              const val = ctx.parsed.y.toLocaleString('fr-CH', { minimumFractionDigits: 2 });
+              return ctx.dataset.type === 'line'
+                ? `Total: ${val} ha`
+                : `${ctx.dataset.label}: ${val} ha`;
+            }
           }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Année' },
+          stacked: true,
+          grid: { display: false }
+        },
+        y: {
+          title: { display: true, text: 'Surface par classe (ha)' },
+          stacked: true,
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y1: {
+          position: 'right',
+          display: true,
+          title: { display: true, text: 'Surface totale (ha)' },
+          grid: { display: false },
+          beginAtZero: true
         }
       }
     }
@@ -622,5 +677,6 @@ map.getPane("pane2024").style.opacity = 0;
   </script>
 </body>
 </html>
+
 
 
