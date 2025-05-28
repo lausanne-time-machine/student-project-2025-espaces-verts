@@ -74,7 +74,13 @@ const geojson3 = FileAttachment("./data/evolution_Renove_Actuel.geojson").json()
 <p> On peut également observer une augmentation notable des espaces verts dans cette zone, liée à des remblais successifs et à la prise de terrain sur le lac. Cette avancée artificielle des rives a permis l’aménagement de vastes parcs publics entre Vidy et Bellerive, comme le parc Louis-Bourget ou encore la plage de Vidy, qui n’existaient pas sur les cadastres anciens. Ces espaces, bien que très artificiel, témoigne de la volonté de la ville de Lausanne au cours du XIXème siècle d'utiliser le front lacustre à des fins récréatives.</p>
 <h3>Une dynamique différente des autres cartes</h3>
 <p> Contrairement aux deux premières heatmaps, où les changements se concentraient principalement dans le centre-ville, cette dernière carte révèle une répartition des modifications en forme de « donut » : les zones de transition ou de disparition des espaces verts se situent désormais en périphérie, tandis que le centre-ville reste relativement stable – non pas par préservation, mais parce qu’il est déjà entièrement urbanisé et ne compte plus de parcelles végétalisées à transformer. Cette évolution spatiale fait écho aux orientations récentes du plan directeur cantonal et aux principes de la LAT (Loi sur l’aménagement du territoire) à l’échelle fédérale, qui encouragent une densification vers l’intérieur plutôt qu’un étalement. Ainsi, les nouvelles dynamiques d’aménagement tendent à préserver les surfaces non bâties en périphérie immédiate tout en consolidant l’existant dans les zones déjà urbanisées. </p>
+</section>
 
+<section style="font-size: 0.8em; color: #555;">
+  <p><strong>Sources :</strong></p>
+  <p>
+    Cercle vaudois de botanique. <em>Flore vaudoise, Atlas illustré des plantes vasculaires du canton de Vaud.</em> Lausanne : Cercle vaudois de botanique, 2023. 1000 p.
+  </p>
 </section>
 
 
