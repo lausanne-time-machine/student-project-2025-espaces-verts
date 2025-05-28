@@ -17,6 +17,11 @@ if (L === undefined) console.error("L is undefined");
 import "./plugins/leaflet-heat.js";
 ```
 
+```js
+import turf from "npm:@turf/turf";
+```
+
+
 # Carte 2024
 Cette page présente le carte actuelle de Lausanne (2024).
 
@@ -25,6 +30,39 @@ Cette page présente le carte actuelle de Lausanne (2024).
 ```js
 const geojson = FileAttachment("./data/2024_espaces_verts_macro.geojson").json()
 ```
+
+```js
+// Calcul des centroïdes de chaque patch
+centroids = patches.features.map(f => turf.centroid(f).geometry.coordinates)
+
+// Seuil de distance (km) pour définir un lien de connectivité
+threshold = 0.5
+
+// Comptage du nombre de voisins sous le seuil pour chaque patch\ nneighborCounts = patches.features.map((f, i) =>
+  patches.features.reduce((sum, g, j) => {
+    if (i === j) return sum
+    const d = turf.distance(
+      centroids[i],
+      turf.centroid(g).geometry.coordinates,
+      { units: "kilometers" }
+    )
+    return sum + (d < threshold ? 1 : 0)
+  }, 0)
+)
+
+// Normalisation pour obtenir un indice [0,1]
+gmax = Math.max(...neighborCounts)
+patches.features.forEach((f, i) => {
+  f.properties.connectivityIndex = neighborCounts[i] / (gmax || 1)
+})
+```
+
+
+
+
+
+
+
 <!-- Create the map container -->
 <div id="map-container" style="height: 500px; margin: 1em 0 2em 0;"></div>
 
@@ -64,146 +102,32 @@ function createMapAndLayer(mapContainer, geojsonData) {
         }[cat] || "#000000";
     }
 
-    const geoJsonLayer = L.geoJSON(geojsonData, {
-        style: function (feature) {
-            const cat = feature.properties.macro_ev;
-            return {
-                color: "#333",
-                fillColor: getColor(cat),
-                fillOpacity: 0.6,
-                weight: 1
-            };
-        },
-        
+    // Affichage des patches
+    L.geoJSON(patches, {
+        style: f => ({
+        color: '#333',
+        fillColor: getColor(f.properties.macro_ev),
+        fillOpacity: 0.5,
+        weight: 1
+        })
+    }).addTo(map)
 
-        onEachFeature: function (feature, layer) {
-            // Store a reference to the layer using its merge_id
-            // As a single merge_id can be used for multiple features, we use a Set
-            // to store all layers associated with that merge_id
-            if (feature.properties && feature.properties.merge_id) {
-                const merge_id = feature.properties.merge_id;
+    // Ajout des épicentres
+    patches.features.forEach(f => {
+        const [lon, lat] = turf.centroid(f).geometry.coordinates
+        const idx = f.properties.connectivityIndex || 0
+        const radius = 4 + (20 - 4) * idx
+        const opacity = 0.3 + 0.6 * idx
 
-                // Check if the merge_id already exists in the map
-                if (!featureLayersMap.has(merge_id)) {
-                    featureLayersMap.set(merge_id, new Set());
-                }
-                // Add the layer to the Set associated with the merge_id
-                featureLayersMap.get(merge_id).add(layer);
+        L.circleMarker([lat, lon], {
+        radius,
+        fillColor: '#000',
+        fillOpacity: opacity,
+        color: '#333',
+        weight: 1
+        }).addTo(map)
+    })
 
-                // Bind a popup to the layer with the details of the corresponding entries
-                const entries = mergeIDMap.get(merge_id);
-                if (entries) {
-                    const popupContent = entries.map(entry => {
-                        return columnNames.map(column => {
-                            return `<strong>${column}:</strong> ${entry[column]}<br>`;
-                        }).join("") + "<hr>";
-                    }).join("");
-                    layer.bindPopup(popupContent);
-                }
-            }
-        }
-    }).addTo(map);
-    
-    layerControl.addOverlay(geoJsonLayer, "Points");
-
-    // Return the the map instance, the layer group, and the mapping
-    return { map, layerControl, geoJsonLayer, featureLayersMap };
-}
-
-// Call the creation function and store the results
-const mapElements = createMapAndLayer("map-container", geojson);
-```
-
-```js
-// Reactive Update Cell - Runs when filteredMergeIDsSet changes
-function updateMapFilter(geoJsonLayer, featureLayersMap, filteredMergeIDsSet) {
-    let featuresAdded = 0;
-    let featuresRemoved = 0;
-
-    // Iterate through all the layers we stored
-    featureLayersMap.forEach((layerSet, merge_id) => {
-        const shouldBeVisible = filteredMergeIDsSet.has(merge_id);
-        // LayerSet may contain multiple layers for the same merge_id
-        layerSet.forEach(layer => {
-            const isVisible = geoJsonLayer.hasLayer(layer);
-            if (shouldBeVisible && !isVisible) {
-                // If the layer is not already added, add it
-                geoJsonLayer.addLayer(layer);
-                featuresAdded++;
-            } else if (!shouldBeVisible && isVisible) {
-                // If the layer is currently displayed but should not be, remove it
-                geoJsonLayer.removeLayer(layer);
-                featuresRemoved++;
-            }
-        });
-    });
-}
-
-// Call the update function. This cell depends on filteredMergeIDsSet and mapElements.
-const mapUpdateStatus = updateMapFilter(mapElements.geoJsonLayer, mapElements.featureLayersMap, filteredMergeIDsSet)
-```
-
-```js
-// Map the GeoJSON data to an array of entries matching the required pattern for the heatmap
-// e.g. [50.5, 30.5, 0.2] // lat, lng, intensity
-const heatmapData = geojson.features.map(feature => {
-    const coords = feature.geometry.coordinates;
-    const lat = coords[1];
-    const lng = coords[0];
-    const intensity = 0.5;
-    return [lat, lng, intensity];
-});
-```
-
-```js
-// Create a heatmap layer using the heatmapData
-const heatmapLayer = L.heatLayer(heatmapData, {
-    radius: 10,
-    blur: 15,
-});
-
-// Add the heatmap layer to the layer control
-mapElements.layerControl.addOverlay(heatmapLayer, "Heatmap");
-```
-
-## Registre
-
-```js
-const registre = FileAttachment("./data/2024_macro_classes.csv").csv()
-```
-
-```js
-// Create a list of column names
-const columnNames = Object.keys(registre[0]);
-```
-
-```js
-// Create a Map of the merge_id to corresponding entries in the registre
-// This is used to populate the popups with the relevant data for each point
-const mergeIDMap = new Map();
-registre.forEach(entry => {
-    const merge_id = entry.merge_id;
-    if (!mergeIDMap.has(merge_id)) {
-        mergeIDMap.set(merge_id, []);
+    return container
     }
-    mergeIDMap.get(merge_id).push(entry);
-});
-```
-
-_Utilisez le champ de recherche pour filtrer les entrées du registre. Les points affichés sur la carte sont mis à jour en fonction du résultat de la recherche._
-
-```js
-const searchResults = view(Inputs.search(registre))
-```
-
-```js
-Inputs.table(searchResults)
-```
-
-```js
-const filteredMergeIDs = searchResults.map(r => r.merge_id)
-```
-
-```js
-const filteredMergeIDsSet = new Set(filteredMergeIDs);
 ```
