@@ -52,7 +52,6 @@ const geojson3 = FileAttachment("./data/evolution_Renove_Actuel.geojson").json()
 <h3>Urbanisation d’Ouchy et infrastructures de liaison</h3> <p> L’urbanisation progressive de la zone d’Ouchy a conduit à la construction du funiculaire Lausanne-Ouchy, inauguré en 1877. Ce nouvel axe de transport a accompagné le développement du quartier, alors en pleine mutation pour accueillir une population croissante et répondre aux ambitions balnéaires des citadins. Sur la carte, on observe à l’est de la ligne de tram plusieurs pertes d’espaces verts, souvent sous forme de petites parcelles disparues ou fragmentées. Il est plausible que ces changements soient liés à un événement ou à une série de projets d’aménagement survenus entre 1830 et 1870, en lien avec le tracé du funiculaire ou avec les premières opérations d’urbanisation du secteur. Ces pertes localisées traduisent une dynamique de transformation rapide de cette zone autrefois plus végétalisée.
 </p>
 
-  <img src="img2.jpg" alt="Illustration 2" style="max-width:100%; margin: 1em 0;">
 </section>
 
 <!-- === Carte 3 === -->
